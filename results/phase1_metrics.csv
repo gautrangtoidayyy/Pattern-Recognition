@@ -1,0 +1,7 @@
+phase,model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
+Phase 1,GaussianNB-NP,train,0.8019,0.8187,0.7978,0.8002,0.21,4.555,54000,42,var_smoothing=0.1
+Phase 1,GaussianNB-NP,validation,0.796,0.8148,0.7922,0.7949,,0.457,6000,42,var_smoothing=0.1
+Phase 1,GaussianNB-NP,test,0.8149,0.8312,0.8112,0.8133,,0.755,10000,42,var_smoothing=0.1
+Phase 1,LogReg-GD-NP,train,0.9173,0.9168,0.9161,0.9161,50.991,1.558,54000,42,"eta=1.0,lam=1e-4,epochs=20,batch=512"
+Phase 1,LogReg-GD-NP,validation,0.9132,0.913,0.912,0.9121,,0.143,6000,42,"eta=1.0,lam=1e-4,epochs=20,batch=512"
+Phase 1,LogReg-GD-NP,test,0.9172,0.9167,0.9161,0.916,,0.268,10000,42,"eta=1.0,lam=1e-4,epochs=20,batch=512"
