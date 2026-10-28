@@ -1,7 +1,0 @@
-phase,model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
-phase3,RandomForest,train,1.0,1.0,1.0,1.0,3.7989,0.3601,50000,42,"n_estimators=100,max_features=sqrt,n_jobs=-1"
-phase3,RandomForest,validation,0.9671,0.96661,0.96677,0.96667,3.7989,0.0717,10000,42,"n_estimators=100,max_features=sqrt,n_jobs=-1"
-phase3,RandomForest,test,0.9675,0.96734,0.96723,0.96726,3.7989,0.0737,10000,42,"n_estimators=100,max_features=sqrt,n_jobs=-1"
-phase3,DecisionTree,train,1.0,1.0,1.0,1.0,20.0722,0.0278,50000,42,"criterion=gini,max_depth=None"
-phase3,DecisionTree,validation,0.8716,0.86963,0.86967,0.86952,20.0722,0.0145,10000,42,"criterion=gini,max_depth=None"
-phase3,DecisionTree,test,0.8748,0.87311,0.87318,0.87301,20.0722,0.0133,10000,42,"criterion=gini,max_depth=None"

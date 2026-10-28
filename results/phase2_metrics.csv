@@ -1,7 +1,0 @@
-phase,model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
-phase2,MLP,train,0.99258,0.9925,0.99252,0.9925,7.4485,0.1052,50000,42,"lr=0.05,momentum=0.9,batch=128,l2=1e-4,arch=[784,256,128,10]"
-phase2,MLP,validation,0.9751,0.97493,0.97486,0.97484,7.4485,0.0235,10000,42,"lr=0.05,momentum=0.9,batch=128,l2=1e-4,arch=[784,256,128,10]"
-phase2,MLP,test,0.9756,0.97548,0.97556,0.97548,7.4485,0.0235,10000,42,"lr=0.05,momentum=0.9,batch=128,l2=1e-4,arch=[784,256,128,10]"
-phase2,CNN,train,0.99652,0.99653,0.99651,0.99652,53.1504,2.3841,50000,42,"lr=1e-3,optimizer=Adam,batch=128,conv=[32,4x4],pool=[2x2],dense=128"
-phase2,CNN,validation,0.9858,0.98574,0.98567,0.98568,53.1504,0.4473,10000,42,"lr=1e-3,optimizer=Adam,batch=128,conv=[32,4x4],pool=[2x2],dense=128"
-phase2,CNN,test,0.9876,0.98768,0.98753,0.98757,53.1504,0.5152,10000,42,"lr=1e-3,optimizer=Adam,batch=128,conv=[32,4x4],pool=[2x2],dense=128"

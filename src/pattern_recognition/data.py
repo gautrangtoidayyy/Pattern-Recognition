@@ -11,7 +11,7 @@ def load_processed_mnist(path: str | Path = DATA_PATH) -> dict[str, np.ndarray]:
     if not data_path.is_file():
         raise FileNotFoundError(
             f"Processed MNIST file not found: {data_path}. "
-            "Run plan/phase0_preprocessing_and_EDA.ipynb first."
+            "Run notebook/preprocessing.ipynb first."
         )
 
     with np.load(data_path, allow_pickle=False) as archive:
