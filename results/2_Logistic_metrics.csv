@@ -1,0 +1,4 @@
+phase,model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
+phase1,LogisticRegression,train,0.93128,0.93093,0.9302,0.93033,4.429,0.229,50000,42,"lr=0.1,epochs=15,batch=256,l2=1e-4,solver=MiniBatchGD"
+phase1,LogisticRegression,validation,0.9172,0.9168,0.91563,0.9159,4.429,0.0373,10000,42,"lr=0.1,epochs=15,batch=256,l2=1e-4,solver=MiniBatchGD"
+phase1,LogisticRegression,test,0.9217,0.92164,0.92051,0.92057,4.429,0.0399,10000,42,"lr=0.1,epochs=15,batch=256,l2=1e-4,solver=MiniBatchGD"

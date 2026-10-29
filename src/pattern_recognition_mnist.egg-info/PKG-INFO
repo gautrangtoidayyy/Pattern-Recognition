@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: pattern-recognition-mnist
+Version: 0.1.0
+Summary: MNIST pattern-recognition course project
+Requires-Python: >=3.10
