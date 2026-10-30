@@ -4,3 +4,11 @@ __pycache__/
 .ipynb_checkpoints/
 data/MNIST/
 data/processed/*.csv
+
+# Data & Cache
+*.npz
+data/processed/
+
+# Mac OS metadata
+.DS_Store
+*/.DS_Store

@@ -1,0 +1,5 @@
+Mô hình,Accuracy,Macro F1,Precision,Recall,Train (s),Predict (s)
+AdaBoost (depth=3),0.9162,0.9157,0.9176,0.9154,330.1451,0.4634
+AdaBoost (LogReg),0.8539,0.8521,0.8541,0.8515,18.7294,0.1089
+AdaBoost (stump),0.7726,0.7721,0.7804,0.7701,115.5444,0.3891
+AdaBoost (GaussianNB),0.5438,0.4921,0.7041,0.5363,19.4947,2.2821
