@@ -1,0 +1,64 @@
+\section*{CHƯƠNG 6. THẢO LUẬN VÀ PHÂN HẠNG MÔ HÌNH}
+\setcounter{section}{6}
+\setcounter{subsection}{0}
+\addcontentsline{toc}{section}{Chương 6. Thảo luận và Phân hạng mô hình}
+
+\subsection{Bản chất toán học và Bốn kết luận đối chiếu then chốt}
+Dựa trên kết quả thực nghiệm chuẩn hóa, chúng tôi rút ra bốn kết luận đối chiếu chuyên sâu về bản chất kỹ thuật của các mô hình:
+
+\subsubsection{1. Mô hình có độ chính xác cao nhất: Mạng tích chập (\code{CNN})}
+\begin{itemize}
+    \item \textbf{Thực nghiệm:} \code{CNN} dẫn đầu tuyệt đối với độ chính xác \textbf{98.76\%} và Macro-F1 \textbf{98.76\%}, chỉ nhận diện sai $124/10.000$ mẫu ảnh kiểm thử.
+    \item \textbf{Bản chất kỹ thuật:} Khác với các phương pháp duỗi phẳng vector $1\text{D}$, CNN bảo toàn trọn vẹn cấu trúc không gian 2D ($28 \times 28$). Trường thụ nhận cục bộ của 32 bộ lọc $4 \times 4$ kết hợp cơ chế chia sẻ trọng số cho phép mạng học các toán tử trích xuất đặc trưng hình học cơ bản (cạnh ngang, nét xiên, góc cong). Tầng gộp cực đại (\code{MaxPool2D}) tạo ra tính bất biến đối với các phép dịch chuyển và co giãn nhẹ của chữ viết tay.
+    \item Mạng \code{MLP} đứng thứ hai với $98.26\%$, thua kém CNN $0.50\%$ do kết nối toàn phần làm mất tính cục bộ không gian và phụ thuộc vào vị trí cố định của từng pixel.
+\end{itemize}
+
+\subsubsection{2. Mô hình cân bằng tốt nhất giữa hiệu năng và chi phí: \code{MLP}}
+\begin{itemize}
+    \item \textbf{Thực nghiệm:} \code{MLP} đạt độ chính xác xuất sắc \textbf{98.26\%}, thời gian huấn luyện chỉ mất \textbf{38.36 giây} trên CPU và sở hữu tốc độ suy diễn nhanh nhất với \textbf{2.46 $\mu\text{s}$/mẫu} ($0.0246$ giây cho toàn bộ $10.000$ mẫu test).
+    \item \textbf{Bản chất kỹ thuật:} Với chỉ 2 tầng ẩn ($784 \rightarrow 256 \rightarrow 128 \rightarrow 10$), tổng số lượng tham số là $235.146$. Quá trình suy diễn cho một mẫu ảnh chỉ gồm hai phép nhân ma trận nhỏ và hai hàm kích hoạt ReLU dạng phần tử. Với tốc độ xử lý hơn $400.000$ ảnh/giây trên một luồng CPU cơ bản mà không cần GPU rời, MLP là giải pháp lý tưởng nhất cho thiết bị biên và hệ thống thời gian thực.
+\end{itemize}
+
+\subsubsection{3. Mô hình tuyến tính gọn nhẹ, phản hồi tức thì: \code{Logistic} và \code{Bayes}}
+\begin{itemize}
+    \item \textbf{Hồi quy Logistic (\code{LogisticRegression-NP}):} Đạt độ chính xác \textbf{90.18\%} và tốc độ suy diễn \textbf{2.59 $\mu\text{s}$/mẫu}. Đây là mô hình tuyến tính chuẩn mực, thiết lập đường cơ sở mạnh mẽ. Việc trực quan hóa trọng số (Hình~\ref{fig:2_03_weights}) chứng minh mô hình nắm bắt được hình dạng khuôn mẫu của từng chữ số. Tuy nhiên, giới hạn của các siêu phẳng tuyến tính khiến mô hình không thể tách rời các lớp có phân phối phi tuyến lồng ghép (như số 3 và số 5).
+    \item \textbf{Naïve Bayes (\code{MultinomialNB-NP}):} Vô địch tuyệt đối về thời gian huấn luyện với chỉ \textbf{0.06 giây} trên $50.000$ mẫu. Do giải thuật chỉ đơn thuần thực hiện phép đếm tần suất và cộng dồn ma trận mà không cần vòng lặp tối ưu hóa đạo hàm, Naïve Bayes cực kỳ thích hợp làm công cụ kiểm tra tính khả thi nhanh (Proof-of-Concept) trước khi triển khai các mô hình phức tạp.
+\end{itemize}
+
+\subsubsection{4. Mô hình tiêu tốn tài nguyên nhưng hiệu quả kém: Các biến thể \code{AdaBoost}}
+Phương pháp học kết hợp Boosting bộc lộ những nhược điểm nghiêm trọng khi áp dụng vào dữ liệu ảnh:
+\begin{enumerate}
+    \item \textbf{Chi phí thời gian khổng lồ:} \code{AdaBoost (depth=3)} tiêu tốn tới \textbf{11.019.24 giây} ($\approx 3.06$ giờ) huấn luyện tuần tự để đạt $91.75\%$. Do tính tuần tự bắt buộc, mỗi cây thứ $t$ phải đợi phân phối trọng số của toàn bộ $50.000$ mẫu cập nhật xong. Ở mỗi vòng, cây quyết định phải duyệt qua toàn bộ 784 chiều liên tục để tìm điểm cắt tối ưu, khiến chi phí tính toán bùng nổ mà hiệu quả mang lại không tương xứng.
+    \item \textbf{Độ trễ suy diễn cao:} Để dự đoán một mẫu ảnh, AdaBoost phải chuyển tiếp mẫu qua lần lượt 200 cây quyết định, khiến độ trễ tăng lên \textbf{266.81 $\mu\text{s}$/mẫu} (chậm hơn $100$ lần so với MLP).
+    \item \textbf{Nguyên nhân suy thoái toán học của các bộ học cơ sở khác:}
+    \begin{itemize}
+        \item \code{AdaBoost (LogReg)} ($85.06\%$ vs. $90.18\%$ của Logistic đơn lẻ): AdaBoost đòi hỏi bộ học cơ sở có độ biến thiên cao (high variance). Hồi quy Logistic là mô hình tuyến tính toàn cục có độ chệch lớn (high bias). Khi AdaBoost gán trọng số cực đoan vào các mẫu khó, siêu phẳng bị xoay lệch nghiêm trọng, làm phá vỡ ranh giới phân loại trên phần lớn các mẫu thông thường.
+        \item \code{AdaBoost (GaussianNB)} ($56.41\%$): Giả định phân phối chuẩn $\mathcal{N}(\mu, \sigma^2)$ xung đột trực tiếp với dữ liệu pixel MNIST (hầu hết bằng 0 hoặc 1). Kết hợp với trọng số mẫu của AdaBoost, ước lượng kỳ vọng và phương sai bị méo mó, khiến mô hình suy thoái nặng nề.
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Bảng tổng kết phân hạng và Khuyến nghị triển khai}
+Bảng~\ref{tab:ranking_recommendations} tổng kết xếp hạng toàn diện và định hướng kịch bản ứng dụng trong thực tế.
+
+\begin{table}[htbp]
+    \centering
+    \footnotesize
+    \caption{Bảng tổng hợp xếp hạng mô hình và khuyến nghị ứng dụng thực tế}
+    \label{tab:ranking_recommendations}
+    \vspace{0.15cm}
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabularx}{\textwidth}{c l c r r X X}
+        \toprule
+        \textbf{Hạng} & \textbf{Mô hình} & \textbf{Acc} & \textbf{Train} & \textbf{Độ trễ} & \textbf{Ưu điểm cốt lõi} & \textbf{Khuyến nghị áp dụng} \\
+        \midrule
+        \textbf{1} & \textbf{CNN} & \textbf{98.76\%} & 56.9s & 53.2 $\mu\text{s}$ & Chính xác nhất, giữ đặc trưng 2D & Hệ thống nhận dạng chuẩn xác cao. \\
+        \textbf{2} & \textbf{MLP} & \textbf{98.26\%} & 38.4s & \textbf{2.46 $\mu\text{s}$} & Suy diễn siêu tốc, tỷ suất Pareto tối ưu & Thiết bị nhúng, IoT, thời gian thực. \\
+        \textbf{3} & \textbf{AdaBoost (d=3)} & 91.75\% & 11019s & 266.8 $\mu\text{s}$ & Học tương tác phi tuyến bậc thấp & Nghiên cứu lý thuyết Boosting. \\
+        \textbf{4} & \textbf{Logistic Reg} & 90.18\% & 32.3s & 2.59 $\mu\text{s}$ & Đơn giản, giải thích rõ ràng & Đường cơ sở tuyến tính chuẩn mực. \\
+        \textbf{5} & \textbf{AdaBoost (LR)} & 85.06\% & 48.4s & 30.1 $\mu\text{s}$ & Huấn luyện nhanh hơn cây & Kém hơn Logistic đơn; không dùng. \\
+        \textbf{6} & \textbf{MultinomialNB} & 83.56\% & \textbf{0.06s} & 33.3 $\mu\text{s}$ & Huấn luyện tức thì không cần đạo hàm & Thử nghiệm dữ liệu (Proof-of-Concept). \\
+        \textbf{7} & \textbf{AdaBoost (stump)} & 78.53\% & 242.0s & 242.0 $\mu\text{s}$ & Cực đơn giản, cắt theo 1 pixel & Minh họa lý thuyết bài giảng. \\
+        \textbf{8} & \textbf{AdaBoost (GNB)} & 56.41\% & 46.8s & 784.1 $\mu\text{s}$ & Không có ưu điểm thực tế & Xung đột phân phối ảnh; không dùng. \\
+        \bottomrule
+    \end{tabularx}
+\end{table}

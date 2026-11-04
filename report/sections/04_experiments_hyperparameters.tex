@@ -1,0 +1,41 @@
+\section*{CHƯƠNG 4. THIẾT LẬP THỰC NGHIỆM VÀ PHÂN TÍCH SIÊU THAM SỐ}
+\setcounter{section}{4}
+\setcounter{subsection}{0}
+\addcontentsline{toc}{section}{Chương 4. Thiết lập thực nghiệm và Phân tích siêu tham số}
+
+\subsection{Giải thích chi tiết các bộ siêu tham số tối ưu}
+Qua quá trình quét lưới (Grid Search) trên tập kiểm định (\code{Validation Set}), các bộ siêu tham số tối ưu được xác lập cho từng mô hình:
+
+\subsubsection{Mô hình Naïve Bayes (\code{MultinomialNB-NP}) và Hồi quy Logistic (\code{LogisticRegression-NP})}
+\begin{itemize}
+    \item \code{MultinomialNB-NP} (\code{alpha = 0.0001}): Giá trị làm trơn Laplace cực nhỏ đóng vai trò ngưỡng an toàn số học tránh lỗi chia cho $0$ ở các pixel biên bất hoạt, đồng thời bảo toàn độ tương phản thực tế giữa nét chữ và nền ảnh (khác với giá trị mặc định $\alpha = 1.0$ vốn làm phẳng phân phối quá mức).
+    \item \code{LogisticRegression-NP} (\code{eta = 1.0, max_epochs = 100, lam = 1e-4, strategy = OneVsRest}): Tốc độ học $\eta = 1.0$ kết hợp chuẩn hóa gradient Full-batch trên $50.000$ mẫu giúp mô hình hội tụ nhanh chóng; sau 100 epoch, chuẩn gradient giảm về tiệm cận $0$; hệ số phạt $L_2$ $\lambda = 10^{-4}$ kiềm chế độ lớn trọng số ở các điểm ảnh biên; chiến lược One-Vs-Rest phân tách 10 siêu phẳng nhị phân độc lập.
+\end{itemize}
+
+\subsubsection{Mạng nơ-ron đa tầng (\code{MLP}) và Mạng tích chập (\code{CNN})}
+\begin{itemize}
+    \item \code{MLP} (\code{arch = 784-256-128-10, activation = ReLU, init = He, lr = 0.1, momentum = 0.5, batch = 64, weight_decay = 1e-4, best_epoch = 18}): Kiến trúc 2 tầng ẩn ($256 \rightarrow 128$) cung cấp sức chứa biểu diễn tối ưu; ReLU và khởi tạo He Normal ngăn chặn triệt tiêu gradient và bảo toàn phương sai kích hoạt; Mini-batch SGD với batch 64 và momentum $0.5$ tăng tốc vượt qua điểm yên ngựa; cơ chế Dừng sớm ngắt tại epoch 18 giúp mô hình không bị quá khớp.
+    \item \code{CNN} (\code{conv = 32x4x4, pool = 2x2, dense = 128, optimizer = Adam, lr = 1e-3, batch = 128, best_epoch = 7}): 32 bộ lọc $4 \times 4$ trích xuất đặc trưng hình học cục bộ; Max-Pooling $2 \times 2$ tạo tính bất biến dịch chuyển; Adam tối ưu hóa với tốc độ học thích ứng giúp mô hình đạt cực tiểu chỉ sau 7 epoch.
+\end{itemize}
+
+\subsubsection{Các biến thể Học kết hợp (\code{AdaBoost})}
+\begin{itemize}
+    \item \code{AdaBoost (depth=3)} (\code{n_estimators = 200, lr = 0.5}): Cây quyết định độ sâu 3 (tối đa 8 lá) nắm bắt tương tác phi tuyến bậc thấp giữa các pixel lân cận. Tốc độ học $0.5$ kiểm soát phương sai của chuỗi boosting.
+    \item \code{AdaBoost (LogReg)} (\code{n_estimators = 50, lr = 0.5}), \code{AdaBoost (stump)} (\code{n_estimators = 100, lr = 0.5}), \code{AdaBoost (GaussianNB)} (\code{n_estimators = 50, lr = 0.5}): Khảo sát các bộ học tuyến tính, gốc cây đơn biến và phân phối chuẩn.
+\end{itemize}
+
+\subsection{Biện luận tính công bằng trong thực nghiệm so sánh}
+Chúng tôi khẳng định quy trình thực nghiệm là hoàn toàn công bằng và chuẩn mực dựa trên 4 luận điểm khoa học:
+
+\begin{enumerate}
+    \item \textbf{Số epoch không tương đương với số lần cập nhật tham số:}
+    \begin{itemize}
+        \item \code{LogisticRegression-NP} (Full-batch GD): 1 epoch = 1 lần cập nhật; $100$ epoch tương ứng đúng \textbf{100 lần cập nhật}.
+        \item \code{MLP} (Mini-batch SGD, batch 64): mỗi epoch có $\lceil 50.000 / 64 \rceil = 782$ bước cập nhật; sau 18 epoch là \textbf{14.076 lần cập nhật}.
+        \item \code{CNN} (Mini-batch Adam, batch 128): mỗi epoch có $\lceil 50.000 / 128 \rceil = 391$ bước; sau 7 epoch là \textbf{2.737 lần cập nhật}.
+    \end{itemize}
+    Ép buộc các mô hình chạy cùng số epoch là phi khoa học, vì $100$ epoch của MLP sẽ gây quá khớp nghiêm trọng ($>78.000$ bước), trong khi $7$ epoch của Logistic là quá ít để Full-batch hội tụ.
+    \item \textbf{Cơ chế Dừng sớm (Early Stopping) khách quan:} Số epoch tối ưu của MLP ($18$) và CNN ($7$) là kết quả tự động từ hàm mất mát trên tập kiểm định độc lập (\code{val\_loss}), đảm bảo mô hình đạt năng lực tổng quát hóa cao nhất.
+    \item \textbf{Bản chất tuần tự đặc thù của AdaBoost:} 200 vòng lặp của AdaBoost tương ứng với việc huấn luyện tuần tự 200 bộ phân loại cơ sở, hoàn toàn khác biệt so với số epoch hay batch step của mạng nơ-ron.
+    \item \textbf{Chuẩn mực đánh giá đồng nhất trên tập Test:} Tất cả mô hình dùng chung phân chia dữ liệu (seed 42), siêu tham số chọn lọc hoàn toàn trên tập Train/Validation, và tập Test ($10.000$ mẫu) được cô lập hoàn toàn cho tới lần đánh giá cuối cùng.
+\end{enumerate}

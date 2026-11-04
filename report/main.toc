@@ -1,0 +1,44 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{Tóm tắt báo cáo}{i}{Doc-Start}%
+\contentsline {section}{Thông tin sinh viên và Phân công công việc}{i}{Doc-Start}%
+\contentsline {section}{Chương 1. Giới thiệu}{1}{chapter*.2}%
+\contentsline {subsection}{\numberline {1.1}Bối cảnh và Đặt vấn đề}{1}{subsection.0.1.1}%
+\contentsline {subsection}{\numberline {1.2}Mục tiêu nghiên cứu và Phạm vi đề tài}{1}{subsection.0.1.2}%
+\contentsline {subsection}{\numberline {1.3}Cấu trúc báo cáo}{1}{subsection.0.1.3}%
+\contentsline {section}{Chương 2. Tập dữ liệu và Tiền xử lý}{1}{subsection.0.1.3}%
+\contentsline {subsection}{\numberline {2.1}Mô tả bộ dữ liệu chuẩn MNIST}{1}{subsection.0.2.1}%
+\contentsline {subsection}{\numberline {2.2}Phân tích khám phá hình thái học (EDA)}{2}{subsection.0.2.2}%
+\contentsline {subsection}{\numberline {2.3}Quy trình chuẩn hóa dữ liệu cho từng nhóm thuật toán}{3}{subsection.0.2.3}%
+\contentsline {section}{Chương 3. Cơ sở lý thuyết và Phương pháp}{3}{subsection.0.2.3}%
+\contentsline {subsection}{\numberline {3.1}Mô hình xác suất Naïve Bayes đa thức (\texttt {MultinomialNB-NP})}{3}{subsection.0.3.1}%
+\contentsline {subsubsection}{Cơ sở toán học}{3}{section*.5}%
+\contentsline {subsection}{\numberline {3.2}Hồi quy Logistic đa lớp (\texttt {LogisticRegression-NP})}{4}{subsection.0.3.2}%
+\contentsline {subsubsection}{Cơ sở toán học}{4}{section*.6}%
+\contentsline {subsection}{\numberline {3.3}Mô hình Học sâu: Mạng nơ-ron đa tầng (\texttt {MLP}) và Mạng tích chập (\texttt {CNN})}{4}{subsection.0.3.3}%
+\contentsline {subsubsection}{Mạng nơ-ron truyền thẳng đa tầng (\texttt {MLP})}{4}{section*.7}%
+\contentsline {subsubsection}{Mạng nơ-ron tích chập (\texttt {CNN})}{5}{equation.0.11}%
+\contentsline {subsection}{\numberline {3.4}Học kết hợp Boosting (\texttt {AdaBoost})}{5}{subsection.0.3.4}%
+\contentsline {subsubsection}{Cơ sở toán học}{5}{section*.8}%
+\contentsline {section}{Chương 4. Thiết lập thực nghiệm và Phân tích siêu tham số}{6}{lstnumber.0.4.11}%
+\contentsline {subsection}{\numberline {4.1}Giải thích chi tiết các bộ siêu tham số tối ưu}{6}{subsection.0.4.1}%
+\contentsline {subsubsection}{Mô hình Naïve Bayes (\texttt {MultinomialNB-NP}) và Hồi quy Logistic (\texttt {LogisticRegression-NP})}{6}{section*.9}%
+\contentsline {subsubsection}{Mạng nơ-ron đa tầng (\texttt {MLP}) và Mạng tích chập (\texttt {CNN})}{6}{section*.9}%
+\contentsline {subsubsection}{Các biến thể Học kết hợp (\texttt {AdaBoost})}{6}{section*.9}%
+\contentsline {subsection}{\numberline {4.2}Biện luận tính công bằng trong thực nghiệm so sánh}{6}{subsection.0.4.2}%
+\contentsline {section}{Chương 5. Kết quả thực nghiệm}{7}{Item.10}%
+\contentsline {subsection}{\numberline {5.1}Kết quả chi tiết từng nhóm mô hình}{7}{subsection.0.5.1}%
+\contentsline {subsubsection}{Mô hình Naïve Bayes (\texttt {1\_Bayes}) và Hồi quy Logistic (\texttt {2\_Logistic})}{7}{section*.10}%
+\contentsline {subsubsection}{Mô hình Học sâu (\texttt {3\_MLP\_CNN}) và Học kết hợp (\texttt {4\_Ensemble})}{7}{figure.caption.11}%
+\contentsline {subsection}{\numberline {5.2}Bảng tổng hợp so sánh chung trên tập Test}{8}{subsection.0.5.2}%
+\contentsline {subsection}{\numberline {5.3}Trực quan hóa so sánh tổng thể}{8}{subsection.0.5.3}%
+\contentsline {section}{Chương 6. Thảo luận và Phân hạng mô hình}{9}{Item.13}%
+\contentsline {subsection}{\numberline {6.1}Bản chất toán học và Bốn kết luận đối chiếu then chốt}{9}{subsection.0.6.1}%
+\contentsline {subsubsection}{1. Mô hình có độ chính xác cao nhất: Mạng tích chập (\texttt {CNN})}{9}{section*.15}%
+\contentsline {subsubsection}{2. Mô hình cân bằng tốt nhất giữa hiệu năng và chi phí: \texttt {MLP}}{9}{section*.15}%
+\contentsline {subsubsection}{3. Mô hình tuyến tính gọn nhẹ, phản hồi tức thì: \texttt {Logistic} và \texttt {Bayes}}{10}{section*.15}%
+\contentsline {subsubsection}{4. Mô hình tiêu tốn tài nguyên nhưng hiệu quả kém: Các biến thể \texttt {AdaBoost}}{10}{section*.15}%
+\contentsline {subsection}{\numberline {6.2}Bảng tổng kết phân hạng và Khuyến nghị triển khai}{10}{subsection.0.6.2}%
+\contentsline {section}{Chương 7. Kết luận và Hướng phát triển}{10}{table.caption.16}%
+\contentsline {subsection}{\numberline {7.1}Tổng kết đóng góp của đồ án}{10}{subsection.0.7.1}%
+\contentsline {subsection}{\numberline {7.2}Hạn chế và Hướng phát triển tiếp theo}{11}{subsection.0.7.2}%
+\contentsline {section}{Tài liệu tham khảo}{11}{subsection.0.7.2}%
