@@ -1,0 +1,19 @@
+\section*{CHƯƠNG 7. KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN}
+\setcounter{section}{7}
+\setcounter{subsection}{0}
+\addcontentsline{toc}{section}{Chương 7. Kết luận và Hướng phát triển}
+
+\subsection{Tổng kết đóng góp của đồ án}
+Đồ án đã hoàn thành toàn diện mục tiêu nghiên cứu thực nghiệm và đối chiếu khoa học giữa 4 nhóm phương pháp nhận dạng mẫu trên bộ dữ liệu chuẩn MNIST:
+\begin{enumerate}
+    \item \textbf{Cài đặt From-Scratch minh bạch:} Triển khai thành công Naïve Bayes đa thức, Hồi quy Logistic One-Vs-Rest và cơ chế lan truyền thuận/ngược thủ công của mạng MLP bằng NumPy thuần, khớp hoàn toàn với các dẫn xuất toán học giải tích.
+    \item \textbf{Quy trình thực nghiệm chuẩn mực:} Cố định seed $42$ trên $50.000$ mẫu train, $10.000$ mẫu validation và $10.000$ mẫu test độc lập. Mọi siêu tham số và cơ chế Dừng sớm đều dựa trên tập Validation độc lập, bảo đảm tính công bằng tuyệt đối.
+    \item \textbf{Khảo sát đa chiều trên biên Pareto:} Xác định rõ \code{CNN} dẫn đầu về độ chính xác ($98.76\%$, chỉ sai 124 ảnh), trong khi \code{MLP} là mô hình cân bằng tối ưu nhất ($98.26\%$, huấn luyện $38.36$s, suy diễn siêu tốc $2.46$ $\mu\text{s}$/mẫu).
+    \item \textbf{Làm sáng tỏ hạn chế của AdaBoost:} Chứng minh thực nghiệm rằng AdaBoost với cây quyết định tiêu tốn chi phí tính toán khổng lồ ($> 3$ giờ) do tính chất tuần tự, trong khi kết hợp với Logistic hay GaussianNB dẫn đến suy thoái hiệu năng do bất tương thích toán học.
+\end{enumerate}
+
+\subsection{Hạn chế và Hướng phát triển tiếp theo}
+Các hướng mở rộng tiềm năng trong tương lai bao gồm:
+(1) \textbf{Tăng cường dữ liệu (Data Augmentation):} Bổ sung các phép biến đổi xoay ngẫu nhiên $\pm 10^\circ$, co giãn tỷ lệ và biến dạng đàn hồi để tăng độ bền vững cho CNN;
+(2) \textbf{Kiến trúc sâu hơn và cơ chế chú ý:} Thử nghiệm các khối tích chập phần dư (ResNet) hoặc Vision Transformer thu nhỏ;
+(3) \textbf{Lượng tử hóa và Nén mô hình:} Áp dụng lượng tử hóa INT8, tỉa thưa trọng số và xuất mô hình sang ONNX Runtime nhằm phục vụ triển khai trên thiết bị biên nhúng.
