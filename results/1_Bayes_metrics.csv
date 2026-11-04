@@ -1,4 +1,4 @@
-phase,model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
-phase1,MultinomialNB-NP,train,0.82468,0.83187,0.8218,0.82354,0.0594,1.2717,50000,42,alpha=0.0001
-phase1,MultinomialNB-NP,validation,0.8215,0.82771,0.81801,0.81976,0.0594,0.2935,10000,42,alpha=0.0001
-phase1,MultinomialNB-NP,test,0.8356,0.84236,0.83252,0.83411,0.0594,0.2363,10000,42,alpha=0.0001
+model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
+MultinomialNB-NP,train,0.82468,0.83187,0.8218,0.82354,0.0595,1.6355,50000,42,alpha=0.0001
+MultinomialNB-NP,validation,0.8215,0.82771,0.81801,0.81976,0.0595,0.3159,10000,42,alpha=0.0001
+MultinomialNB-NP,test,0.8356,0.84236,0.83252,0.83411,0.0595,0.333,10000,42,alpha=0.0001
