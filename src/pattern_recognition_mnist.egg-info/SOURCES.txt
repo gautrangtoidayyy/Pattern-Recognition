@@ -7,14 +7,12 @@ src/pattern_recognition/evaluation/__init__.py
 src/pattern_recognition/evaluation/metrics.py
 src/pattern_recognition/models/__init__.py
 src/pattern_recognition/models/from_scratch/__init__.py
+src/pattern_recognition/models/from_scratch/ensemble.py
 src/pattern_recognition/models/from_scratch/logistic_regression.py
 src/pattern_recognition/models/from_scratch/mlp.py
 src/pattern_recognition/models/from_scratch/naive_bayes.py
-src/pattern_recognition/models/from_scratch/random_forest.py
 src/pattern_recognition/models/pytorch/__init__.py
 src/pattern_recognition/models/pytorch/cnn.py
-src/pattern_recognition/models/sklearn/__init__.py
-src/pattern_recognition/models/sklearn/ensemble_benchmarks.py
 src/pattern_recognition_mnist.egg-info/PKG-INFO
 src/pattern_recognition_mnist.egg-info/SOURCES.txt
 src/pattern_recognition_mnist.egg-info/dependency_links.txt
