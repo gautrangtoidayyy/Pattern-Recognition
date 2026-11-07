@@ -1,4 +1,4 @@
 model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
-LogisticRegression-NP,train,0.89482,0.89429,0.89297,0.89303,32.2878,0.1321,50000,42,"eta=1.0,max_epochs=100,lam=1e-4,strategy=OneVsRest"
-LogisticRegression-NP,validation,0.893,0.89181,0.8908,0.89095,32.2878,0.0276,10000,42,"eta=1.0,max_epochs=100,lam=1e-4,strategy=OneVsRest"
-LogisticRegression-NP,test,0.9018,0.90171,0.9003,0.90028,32.2878,0.0259,10000,42,"eta=1.0,max_epochs=100,lam=1e-4,strategy=OneVsRest"
+LogisticRegression-NP,train,0.81402,82.40008,80.89741,80.57374,10.5584,0.148,50000,42,"eta=0.1,max_epochs=30,lam=1e-4,strategy=OneVsRest"
+LogisticRegression-NP,validation,0.818,82.63567,81.17852,81.07766,10.5584,0.0296,10000,42,"eta=0.1,max_epochs=30,lam=1e-4,strategy=OneVsRest"
+LogisticRegression-NP,test,0.8253,83.44262,82.01204,81.68717,10.5584,0.0311,10000,42,"eta=0.1,max_epochs=30,lam=1e-4,strategy=OneVsRest"

@@ -1,7 +1,7 @@
 model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
-MLP,train,1.0,1.0,1.0,1.0,38.3577,0.162,50000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
-MLP,validation,0.9788,0.97847,0.97866,0.97855,38.3577,0.026,10000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
-MLP,test,0.9826,0.98249,0.98243,0.98246,38.3577,0.0246,10000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
-CNN,train,0.99652,0.99653,0.99651,0.99652,56.895,2.5614,50000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
-CNN,validation,0.9858,0.98574,0.98567,0.98568,56.895,0.5289,10000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
-CNN,test,0.9876,0.98768,0.98753,0.98757,56.895,0.5319,10000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
+MLP,train,1.0,1.0,1.0,1.0,27.3434,0.2015,50000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
+MLP,validation,0.9788,0.97847,0.97866,0.97855,27.3434,0.0203,10000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
+MLP,test,0.9826,0.98249,0.98243,0.98246,27.3434,0.0206,10000,42,"arch=784-256-128-10,activation=ReLU,init=He,lr=0.1,momentum=0.5,batch=64,weight_decay=1e-4,best_epoch=18"
+CNN,train,0.99652,0.99653,0.99651,0.99652,42.7136,2.0187,50000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
+CNN,validation,0.9858,0.98574,0.98567,0.98568,42.7136,0.4393,10000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
+CNN,test,0.9876,0.98768,0.98753,0.98757,42.7136,0.4099,10000,42,"conv=32x4x4,pool=2x2,dense=128,optimizer=Adam,lr=1e-3,batch=128,max_epochs=10,patience=2,best_epoch=7"
