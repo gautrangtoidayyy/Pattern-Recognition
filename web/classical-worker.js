@@ -1,0 +1,5 @@
+import {fitBayes,fitAda,evaluate} from './classical-train.js?v=20261104-theory';
+let stopped=false;
+self.onmessage=async e=>{if(e.data.type==='stop'){stopped=true;return;}const {model,trainBytes,trainLabels,testBytes,testLabels,meta,options}=e.data;stopped=false;let net={meta,w:{}};
+ try{const fn=model==='ada'?fitAda:fitBayes;const result=await fn({model,bytes:trainBytes,labels:trainLabels,meta,...options,shouldStop:()=>stopped,onStatus:status=>self.postMessage({type:'status',...status}),onUpdate:async patch=>{if(patch.w)net.w=patch.w;else Object.assign(net,patch);const metrics=evaluate(net,model,testBytes,testLabels,100);const train=evaluate(net,model,trainBytes,trainLabels,Math.min(64,patch.seen));self.postMessage({type:'update',patch,metrics,train});}});let metrics=null;if(result)metrics=evaluate(net,model,testBytes,testLabels,Math.min(model==='ada'?10000:1000,testLabels.length));self.postMessage({type:'done',stopped,metrics});}catch(error){self.postMessage({type:'error',message:error.message});}
+};
