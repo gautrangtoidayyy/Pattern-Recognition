@@ -3,10 +3,13 @@
 | Thông tin           | Chi tiết                                                                                                 |
 | :------------------- | :-------------------------------------------------------------------------------------------------------- |
 | **Môn học**  | Nhận dạng mẫu (Pattern Recognition)                                                                    |
-| **Đơn vị**  | Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM                                                       |
+| **Khoa**       | Toán - Tin học, Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM                                    |
 | **Dữ liệu**  | MNIST Handwritten Digits (70.000 ảnh $28 \times 28$, gồm 10 lớp chữ số 0–9)                       |
 | **Mục tiêu** | Tự xây dựng thuật toán, tối ưu siêu tham số và đánh giá  4 nhóm mô hình                  |
 | **Mã nguồn** | [github.com/gautrangtoidayyy/Pattern-Recognition](https://github.com/gautrangtoidayyy/Pattern-Recognition) |
+| **Báo cáo**  | [Link Drive](https://drive.google.com/file/d/12Ti7kMtoMD5moBOjm66D8Z9XRSd5UXHf/view?usp=sharing)           |
+| **Slide**      | [Link Canva](https://canva.link/wmztn5ue5ay06y9)                                                           |
+| **Demo Web**   | [Link](https://pattern-recognition-mnist-handwritten-digit-recognition.r2u-hcmus.workers.dev/)             |
 
 ---
 
@@ -202,7 +205,7 @@ Pattern-Recognition/
 │
 ├── src/pattern_recognition/              # Package Python tái sử dụng thuật toán
 │   ├── __init__.py
-│   ├── config.py                         #   Cấu hình seed=42 và đường dẫn
+│   ├── config.py                         #   Cấu hình seed=42 và  đường dẫn
 │   ├── data.py                           #   Hàm đọc dữ liệu đã tiền xử lý
 │   ├── models/                           #   Mã nguồn các mô hình tự cài đặt & PyTorch
 │   └── evaluation/metrics.py             #   Hàm tính toán các chỉ số đánh giá
