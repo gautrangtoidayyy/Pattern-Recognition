@@ -1,6 +1,0 @@
-\section*{Tóm tắt báo cáo}
-\addcontentsline{toc}{section}{Tóm tắt báo cáo}
-
-Đồ án khảo sát tám mô hình nhận dạng chữ số trên MNIST, gồm Multinomial Naïve Bayes, One-vs-Rest Logistic Regression, MLP, CNN và bốn biến thể AdaBoost. Dữ liệu được chia cố định thành 50.000 mẫu huấn luyện, 10.000 mẫu kiểm định và 10.000 mẫu kiểm thử. Các thuật toán Naïve Bayes, Logistic Regression và MLP được cài đặt từ đầu bằng NumPy; CNN và các mô hình AdaBoost được dùng để đối chiếu các hướng tiếp cận khác.
-
-Trên tập kiểm thử, CNN đạt Accuracy cao nhất (98,76%), theo sau là MLP (98,26%). MLP có độ trễ thấp nhất trong các mô hình có độ chính xác cao (2,06~$\mu$s/mẫu), còn MultinomialNB huấn luyện nhanh nhất (0,06 giây). AdaBoost với cây độ sâu 3 đạt 91,75% nhưng cần khoảng 3,06 giờ huấn luyện. Kết quả cho thấy lựa chọn mô hình phụ thuộc vào ưu tiên giữa độ chính xác, thời gian huấn luyện và tốc độ suy diễn.
