@@ -1,390 +1,232 @@
-
 # Nhận dạng chữ số viết tay MNIST — Đồ án Nhận dạng mẫu
 
-> Đồ án môn học **Nhận dạng mẫu (Pattern Recognition)** — xây dựng, huấn luyện và
-> so sánh nhiều mô hình phân loại trên bộ dữ liệu MNIST (70 000 ảnh chữ số viết
-> tay 28x28 pixel, 10 lớp từ 0 đến 9).
+> **Đồ án môn học Nhận dạng mẫu (Pattern Recognition)**
+> Trường Đại học Khoa học Tự nhiên — ĐHQG TP.HCM
+> Đề tài: Xây dựng, huấn luyện, tối ưu và đánh giá toàn diện các mô hình phân lớp trên bộ dữ liệu ảnh chữ số viết tay **MNIST** (70.000 ảnh kích thước $28 \times 28$ pixel, 10 chữ số từ 0 đến 9).
+
+---
+
+## Bảng tổng hợp kết quả thực nghiệm đối chuẩn
+
+Toàn bộ các mô hình được huấn luyện trên cùng tập **Train ($50.000$ mẫu)**, tinh chỉnh siêu tham số trên tập **Validation ($10.000$ mẫu)** và đánh giá độc lập trên tập **Test ($10.000$ mẫu)** với seed ngẫu nhiên cố định `42`:
+
+| Mô hình                          | Trường phái / Triển khai                                      | Test Accuracy (%) | Test Macro-F1 (%) | Thời gian Fit (s) | Thời gian Infer / mẫu |
+| :--------------------------------- | :---------------------------------------------------------------- | :---------------: | :---------------: | :----------------: | :---------------------: |
+| **CNN**                      | Mạng tích chập PyTorch (`Conv2D-MaxPool-FC`)                 | **98.76%** | **98.76%** |      51.61 s      |        ~0.043 ms        |
+| **MLP**                      | Mạng nơ-ron đa tầng (**From scratch**, Manual Backprop) | **98.26%** | **98.25%** |      33.57 s      |   **~0.002 ms**   |
+| **AdaBoost**                 | Học quần thể (`DecisionTreeClassifier`, depth=3)             | **91.75%** | **91.70%** |     11019.24 s     |        ~0.267 ms        |
+| **Logistic Regression**      | Tuyến tính One-vs-Rest (**From scratch**, Batch GD)       | **86.84%** | **86.55%** |      10.70 s      |   **~0.003 ms**   |
+| **Multinomial Naïve Bayes** | Sinh xác suất MAP + Laplace (**From scratch**, NumPy)     | **83.56%** | **83.41%** |  **0.05 s**  |        ~0.027 ms        |
+
+> [!TIP]
+> **Nhận xét then chốt:**
+>
+> - **Tốc độ nhanh nhất:** Multinomial Naïve Bayes hoàn tất huấn luyện $50.000$ mẫu chỉ trong $0.05$ giây nhờ thuật toán thống kê giải tích đếm tần suất pixel mà không cần vòng lặp gradient lặp lại.
+> - **Cân bằng tuyến tính:** Logistic Regression đạt $86.84\%$ với tốc độ hội tụ ổn định qua 30 epoch ở tốc độ học $\eta^* = 0.5$.
+> - **Độ chính xác vượt trội:** Các mô hình học sâu (MLP đạt $98.26\%$ và CNN đạt $98.76\%$) khai thác xuất sắc mối tương quan không gian phi tuyến của ảnh chữ số viết tay.
 
 ---
 
 ## Mục tiêu dự án
 
-1. **Tự cài đặt (from scratch)** các thuật toán cốt lõi bằng NumPy/PyTorch mà
-   **không dùng các hàm huấn luyện có sẵn** của thư viện, nhằm hiểu sâu nguyên lý
-   toán học phía sau mỗi mô hình.
-2. **So sánh đối chiếu** kết quả tự cài với các mô hình tương ứng của scikit-learn
-   và PyTorch để kiểm chứng độ chính xác.
-3. **Trình bày thí nghiệm** theo dạng notebook Jupyter có biểu đồ trực quan,
-   metrics chi tiết (Accuracy, Precision, Recall, Macro-F1) và phân tích kết quả.
+1. **Tự cài đặt (From Scratch)**: Hiện thực hóa thuật toán cốt lõi bằng NumPy/PyTorch mà **không sử dụng các hàm huấn luyện có sẵn** của thư viện:
+   - Multinomial Naïve Bayes (tính kỳ vọng pixel, làm mượt Laplace, suy luận MAP miền Log).
+   - One-vs-Rest Logistic Regression (chèn bias trick, mặt nạ không phạt bias, vector hóa Gradient Descent song song 10 lớp).
+   - Multi-Layer Perceptron (lan truyền thuận, lan truyền ngược thủ công tính đạo hàm BP1–BP4, Inverted Dropout, SGD Momentum).
+   - AdaBoost Ensemble (phân loại mẫu yếu Decision Stumps, cập nhật phân phối trọng số mẫu $D_t$ và trọng số biểu quyết $\alpha_t$).
+2. **Kiểm chứng và đối chiếu chuẩn mực**: So sánh kết quả tự cài đặt với các mô hình chuẩn tương ứng từ `scikit-learn` và `torch.nn` để bảo đảm tính chuẩn xác toán học.
+3. **Phân tích thực nghiệm đa tiêu chí**: Trực quan hóa động học hội tụ, ma trận nhầm lẫn (Confusion Matrix), phân tích các ca nhận dạng lỗi sai điển hình, so sánh Pareto Đánh đổi Độ chính xác — Thời gian và biểu đồ Radar đa chiều.
 
 ---
 
-## Cấu trúc thư mục
+## Cấu trúc thư mục dự án
 
 ```text
 Pattern-Recognition/
 │
-├── notebook/                             # Notebook thí nghiệm chính
-│   ├── preprocessing.ipynb               #   Khám phá, tiền xử lý và chia dữ liệu
-│   ├── 1_Bayes.ipynb                     #   Thí nghiệm Naive Bayes
-│   ├── 2_Logistic.ipynb                  #   Thí nghiệm Logistic Regression
-│   ├── 3_MLP_CNN.ipynb                   #   Thí nghiệm MLP và CNN
-│   └── 4_Ensemble_Comparisons.ipynb      #   Thí nghiệm Ensemble & so sánh tổng thể
+├── notebook/                             # Chuỗi Jupyter Notebook thực nghiệm chính
+│   ├── 0_Preprocessing_EDA.ipynb         #   Khám phá dữ liệu (EDA), phân bố lớp, chuẩn hóa, phân tầng dữ liệu
+│   ├── 1_Bayes.ipynb                     #   Mô hình 1: Multinomial Naïve Bayes from scratch & Laplace smoothing
+│   ├── 2_Logistic.ipynb                  #   Mô hình 2: One-vs-Rest Logistic Regression from scratch & Vectorized GD
+│   ├── 3_MLP_CNN.ipynb                   #   Mô hình 3: MLP from scratch (Backprop thủ công) & CNN PyTorch
+│   ├── 4_Ensemble.ipynb                  #   Mô hình 4: AdaBoost Ensemble & Cây quyết định from scratch
+│   └── Compairisons.ipynb                #   Đánh giá đối chuẩn tổng hợp, Trade-offs & Biểu đồ Radar
 │
-├── docs/                                 # Tài liệu đề bài và bài Lab tham khảo
-│   ├── DoAn_ThucHanh_NhanDang.pdf        #   Đề bài đồ án thực hành
-│   ├── CNN_MNIST_from_scratch_explained.ipynb  # Tài liệu giải thích CNN from scratch
-│   ├── Lab1.ipynb                        #   Bài Lab 1 (tham khảo)
-│   ├── Lab2.ipynb                        #   Bài Lab 2 — Naive Bayes
-│   ├── Lab3.ipynb                        #   Bài Lab 3 — Logistic Regression
-│   └── Lab4.ipynb                        #   Bài Lab 4 — Neural Networks
-│
-├── src/pattern_recognition/              # Package Python chứa triển khai thuật toán
-│   ├── __init__.py                       #   Đánh dấu package gốc
-│   ├── config.py                         #   Hằng số cấu hình (đường dẫn, seed)
-│   ├── data.py                           #   Hàm tải dữ liệu đã xử lý
+├── src/pattern_recognition/              # Package Python tái sử dụng thuật toán
+│   ├── __init__.py                       #   Package initialization
+│   ├── config.py                         #   Hằng số cấu hình hệ thống (SEED=42, đường dẫn dữ liệu)
+│   ├── data.py                           #   Hàm tải và giải nén dữ liệu mnist_processed.npz
 │   │
-│   ├── models/                           #   Thư mục chứa tất cả mô hình
-│   │   ├── __init__.py
-│   │   │
-│   │   ├── from_scratch/                 #   Mô hình tự cài bằng NumPy/PyTorch
-│   │   │   ├── __init__.py
-│   │   │   ├── naive_bayes.py            #     Gaussian & Multinomial Naive Bayes
-│   │   │   ├── logistic_regression.py    #     Softmax Logistic Regression đa lớp
-│   │   │   ├── mlp.py                    #     Multi-Layer Perceptron (forward/backprop thủ công)
-│   │   │   └── random_forest.py          #     Decision Tree CART & Random Forest
-│   │   │
-│   │   ├── pytorch/                      #   Mô hình dùng PyTorch đầy đủ
-│   │   │   ├── __init__.py
-│   │   │   └── cnn.py                    #     Convolutional Neural Network (CNN)
-│   │   │
-│   │   └── sklearn/                      #   Mô hình benchmark dùng scikit-learn
-│   │       ├── __init__.py
-│   │       └── ensemble_benchmarks.py    #     Hàm benchmark Bagging, RF, ExtraTrees, HGBC
+│   ├── models/                           #   Module triển khai thuật toán
+│   │   ├── from_scratch/                 #     Mô hình tự cài đặt (NumPy / Manual Tensor)
+│   │   │   ├── naive_bayes.py            #       Multinomial Naïve Bayes
+│   │   │   ├── logistic_regression.py    #       One-vs-Rest Logistic Regression (Batch GD)
+│   │   │   ├── mlp.py                    #       MLP lan truyền ngược thủ công (BP1-BP4)
+│   │   │   └── ensemble.py               #       AdaBoost Ensemble & Decision Stumps from scratch
+│   │   ├── pytorch/                      #     Mô hình PyTorch chính thức
+│   │   │   └── cnn.py                    #       CNN Conv2D-MaxPool2D-FC
+│   │   └── sklearn/                      #     Bộ mô hình đối chuẩn (Benchmark)
+│   │       └── ensemble_benchmarks.py    #       Bagging, RF, ExtraTrees, HistGradientBoosting
 │   │
-│   └── evaluation/                       #   Module đánh giá dùng chung
-│       ├── __init__.py
-│       └── metrics.py                    #     Hàm evaluate cho MLP và CNN
+│   └── evaluation/                       #   Đánh giá và đo đạc metrics dùng chung
+│       └── metrics.py                    #     Accuracy, Precision, Recall, Macro-F1, Confusion Matrix
 │
-├── data/                                 # Dữ liệu
-│   └── processed/                        #   Chứa mnist_processed.npz (sinh bởi preprocessing)
-│   (data/MNIST/ bị .gitignore — chứa raw MNIST khi tải về)
+├── data/                                 # Thư mục dữ liệu
+│   └── processed/                        #   Chứa mnist_processed.npz (sinh tự động từ notebook 0)
 │
-├── artifacts/                            # Artifact mô hình đã huấn luyện
-│   ├── split_indices.npz                 #   Chỉ số chia train/val/test (tái lập kết quả)
-│   ├── phase1_gaussian_nb.npz            #   Tham số Gaussian NB đã fit
-│   └── phase1_multinomial_nb.npz         #   Tham số Multinomial NB đã fit
+├── artifacts/                            # Lưu trữ tham số và chỉ số phân chia dữ liệu
+│   └── split_indices.npz                 #   Chỉ số phân tầng Train (50k) / Val (10k) / Test (10k)
 │
-├── figures/                              # Biểu đồ kết quả (sinh bởi notebook)
-├── results/                              # File CSV metrics (sinh bởi notebook)
-│   (Dự kiến: 1_Bayes_metrics.csv, 2_Logistic_metrics.csv, ...)
+├── figures/                              # 33 biểu đồ thực nghiệm chất lượng cao (PNG)
+├── results/                              # File CSV ghi nhận số liệu định lượng chi tiết
+│   ├── 1_Bayes_metrics.csv               #   Kết quả Naïve Bayes
+│   ├── 2_Logistic_metrics.csv            #   Kết quả Logistic Regression
+│   ├── 3_MLP_CNN_metrics.csv             #   Kết quả MLP & CNN
+│   ├── 4_Ensemble_metrics.csv            #   Kết quả AdaBoost & Ensemble
+│   └── overall_comparison_metrics.csv    #   Bảng so sánh tổng hợp toàn diện các mô hình
 │
-├── tests/                                # Kiểm thử tự động
-│   └── test_package_smoke.py             #   Smoke test import/API trên dữ liệu nhỏ
+├── tests/                                # Kiểm thử tự động (Unit Test / Smoke Test)
+│   └── test_package_smoke.py             #   Kiểm tra tính toàn vẹn của API và pipeline
 │
-├── plan/                                 # Thư mục kế hoạch phát triển
-├── pyproject.toml                        # Cấu hình build (setuptools, metadata)
+├── pyproject.toml                        # Cấu hình chuẩn hóa Package (PEP 517/518)
 ├── requirements.txt                      # Danh sách thư viện phụ thuộc
-└── .gitignore                            # Loại trừ .venv, __pycache__, data/MNIST, ...
+└── README.md                             # Tài liệu hướng dẫn đồ án
 ```
 
 ---
 
-## Mô tả chi tiết các Notebook
+## Chi tiết các Notebook thực nghiệm
 
-### `notebook/preprocessing.ipynb` — Tiền xử lý dữ liệu
+### 1. `notebook/0_Preprocessing_EDA.ipynb` — Khám phá dữ liệu & Tiền xử lý
 
-- Tải bộ dữ liệu MNIST gốc (70 000 ảnh 28x28 pixel) qua `torchvision`.
-- Khám phá dữ liệu (EDA): phân bố nhãn, hiển thị ảnh mẫu, kiểm tra giá trị pixel.
-- Chuẩn hóa pixel về khoảng [0, 1] bằng cách chia cho 255.
-- Chia dữ liệu thành 3 tập: **Train / Validation / Test** với seed cố định.
-- Lưu kết quả vào `data/processed/mnist_processed.npz` để các notebook sau dùng chung.
-- Lưu chỉ số chia vào `artifacts/split_indices.npz` để đảm bảo tái lập.
-
-### `notebook/1_Bayes.ipynb` — Naive Bayes (Phase 1)
-
-- Huấn luyện và đánh giá **Gaussian Naive Bayes** tự cài (from scratch).
-- Huấn luyện và đánh giá **Multinomial Naive Bayes** tự cài (from scratch).
-- So sánh đối chiếu với `GaussianNB` và `MultinomialNB` của scikit-learn.
-- Hiển thị confusion matrix, classification report, biểu đồ phân tích lỗi.
-- Xuất metrics vào `results/1_Bayes_metrics.csv`.
-
-### `notebook/2_Logistic.ipynb` — Logistic Regression (Phase 1)
-
-- Huấn luyện **Softmax Logistic Regression đa lớp** tự cài bằng NumPy.
-- Sử dụng Mini-batch Gradient Descent với điều chuẩn L2 (không phạt bias).
-- Theo dõi loss history qua các epoch; trực quan hóa đường cong hội tụ.
-- So sánh đối chiếu với `sklearn.linear_model.LogisticRegression`.
-- Xuất metrics vào `results/2_Logistic_metrics.csv`.
-
-### `notebook/3_MLP_CNN.ipynb` — MLP & CNN (Phase 2)
-
-- **MLP tự cài (from scratch)**:
-  - Lan truyền thuận (forward) và lan truyền ngược (backprop) hoàn toàn thủ công.
-  - Hàm mất mát Softmax Cross-Entropy, bộ tối ưu SGD Momentum, Inverted Dropout.
-  - Hỗ trợ Early Stopping dựa trên validation loss.
-  - Dùng `torch.Tensor` và `nn.Linear` như **cấu trúc dữ liệu**; **không dùng**
-    `torch.autograd` hay `torch.optim` — gradient được tính hoàn toàn bằng tay.
-  - Phân tích ảnh hưởng của kiến trúc, hàm kích hoạt (ReLU, Sigmoid, Tanh),
-    cách khởi tạo trọng số (He, Xavier, Constant), Dropout rate.
-- **CNN dùng PyTorch**:
-  - Kiến trúc: Conv2D (32 bộ lọc 4x4) -> ReLU -> MaxPool2D -> Flatten -> Dense(128)
-    -> Dense(10).
-  - Huấn luyện sử dụng cơ chế PyTorch tiêu chuẩn (`autograd`, `torch.optim`).
-  - So sánh hiệu năng CNN với MLP from scratch.
-- Xuất metrics vào `results/3_MLP_CNN_metrics.csv`.
-
-### `notebook/4_Ensemble_Comparisons.ipynb` — Ensemble & So sánh tổng thể (Phase 3)
-
-- Huấn luyện **Random Forest tự cài** (Decision Tree CART + Bagging, thuần NumPy).
-- Benchmark các mô hình Ensemble của scikit-learn:
-  Bagging, Random Forest, Extra Trees, HistGradientBoosting.
-- Tổng hợp kết quả từ **tất cả** các notebook trước (đọc 4 file CSV metrics).
-- Tạo `results/overall_comparison_metrics.csv` và các biểu đồ so sánh tổng thể.
-- **Cần chạy sau notebook 1–3** để có đầy đủ dữ liệu tổng hợp.
+- **Tải và khám phá dữ liệu (EDA):** Tải 70.000 ảnh MNIST gốc; kiểm tra tỷ lệ cân bằng giữa 10 chữ số (dao động hẹp quanh mức lý thuyết $10.0\%$, không bị lệch lớp).
+- **Độ toàn vẹn:** Xác nhận không có giá trị khuyết thiếu (`NaN`) và không có bản ghi trùng lặp.
+- **Phát hiện 67 pixel viền chết ($= 0$):** Phát hiện 67 pixel ở 4 mép viền ngoài luôn bằng $0$ trên toàn bộ các mẫu, khiến phương sai $\sigma^2 = 0$. Đây là cơ sở lý giải vì sao mô hình Gaussian Naïve Bayes thất bại khi chia cho 0 và phải chuyển sang Multinomial Naïve Bayes.
+- **Chiến lược phân chia:** Phân tầng (Stratified Split) với seed ngẫu nhiên `42` thành: Train ($50.000$), Validation ($10.000$), Test ($10.000$).
+- **Kỹ thuật chuẩn hóa:**
+  1. Chuẩn hóa Min-Max $[0, 1]$ ($x_{\text{norm}} = x / 255.0$): Bảo toàn tính không âm của cường độ pixel cho Naïve Bayes và Logistic Regression.
+  2. Chuẩn hóa Z-Score Standardized: Phục vụ mạng sâu MLP và CNN.
+- Lưu dữ liệu nén vào `data/processed/mnist_processed.npz` và `artifacts/split_indices.npz`.
 
 ---
 
-## Mô tả chi tiết Package `src/pattern_recognition/`
+### 2. `notebook/1_Bayes.ipynb` — Multinomial Naïve Bayes
 
-### `config.py` — Hằng số cấu hình
-
-| Hằng số        | Giá trị                                   | Mô tả                                                |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------ |
-| `PROJECT_ROOT` | Thư mục gốc repository (tự phát hiện) | Đường dẫn tuyệt đối đến gốc dự án          |
-| `DATA_PATH`    | `data/processed/mnist_processed.npz`      | Đường dẫn mặc định đến dữ liệu đã xử lý |
-| `SEED`         | `42`                                      | Seed cố định đảm bảo tái lập kết quả         |
-
-### `data.py` — Tải dữ liệu
-
-- **`load_processed_mnist(path)`**: Tải file `.npz` chứa các mảng NumPy
-  (X_train, y_train, X_val, y_val, X_test, y_test). Báo lỗi rõ ràng nếu chưa
-  chạy `preprocessing.ipynb`.
-
-### `models/from_scratch/` — Thuật toán tự cài
-
-#### `naive_bayes.py`
-
-| Lớp / Hàm                      | Mô tả                                                         |
-| -------------------------------- | --------------------------------------------------------------- |
-| `NaiveBayes`                   | Lớp tổng quát Naive Bayes; nhận hàm `log_pdf` tùy biến |
-| `MultinomialNaiveBayes`        | Multinomial NB cho đặc trưng không âm (tần suất pixel)   |
-| `gaussian_log_pdf(X, mu, var)` | Hàm log-mật độ phân phối chuẩn Gaussian                  |
-| `multinomial_log_pdf(...)`     | Hàm log-xác suất với làm mịn Laplace (alpha smoothing)    |
-
-- Hoàn toàn bằng NumPy. Tính log-posterior = log P(C) + sum log P(x_i | C) rồi
-  chọn lớp có điểm cao nhất.
-
-#### `logistic_regression.py`
-
-| Lớp / Hàm              | Mô tả                                                 |
-| ------------------------ | ------------------------------------------------------- |
-| `LogisticRegressionNP` | Softmax Logistic Regression đa lớp, mini-batch GD, L2 |
-| `add_bias(X)`          | Thêm cột 1 vào ma trận (bias trick)                 |
-| `sigmoid(z)`           | Hàm sigmoid ổn định số học                        |
-| `softmax(z)`           | Softmax đa lớp, trừ max chống tràn số             |
-
-- Hoàn toàn bằng NumPy. One-hot encoding, gradient Cross-Entropy + L2
-  regularization (không phạt bias), ghi loss history theo epoch.
-
-#### `mlp.py`
-
-| Lớp / Hàm                                                | Mô tả                                                               |
-| ---------------------------------------------------------- | --------------------------------------------------------------------- |
-| `build_mlp(sizes, ...)`                                  | Xây MLP theo danh sách kích thước (He/Xavier/Const init)         |
-| `forward_with_cache(model, X)`                           | Lan truyền thuận, lưu cache (a_in, a_out) cho backprop             |
-| `softmax_cross_entropy(logits, y)`                       | Tính loss và gradient dJ/dlogits                                    |
-| `linear_backward(layer, a_in, d)`                        | Gradient cho lớp Linear: dW, db, grad_in                             |
-| `relu_backward`, `sigmoid_backward`, `tanh_backward` | Gradient hàm kích hoạt                                             |
-| `dropout_backward(mask, p, grad)`                        | Gradient Inverted Dropout                                             |
-| `backward(cache, grad_out, wd)`                          | Lan truyền ngược toàn mạng, gán `.grad` cho mọi tham số     |
-| `SGDMomentum`                                            | Bộ tối ưu SGD có momentum, tự cài                               |
-| `train_one_epoch(...)`                                   | Huấn luyện 1 epoch theo mini-batch                                  |
-| `evaluate(model, X, y)`                                  | Tính cross-entropy trung bình và accuracy (Dropout tắt)           |
-| `train_model(...)`                                       | Vòng lặp huấn luyện nhiều epoch, ghi history                     |
-| `train_with_early_stopping(...)`                         | Huấn luyện có Early Stopping theo val_loss, khôi phục best state |
-| `layer_grad_norms(model, X, y)`                          | Đo norm dW từng lớp (phân tích vanishing/exploding gradient)     |
-| `relu_output_stds(model, X)`                             | Đo std đầu ra ReLU (phân tích khởi tạo trọng số)             |
-
-- Dùng `torch.Tensor` và `nn.Linear` làm cấu trúc dữ liệu; **tự tính gradient**
-  bằng công thức BP1–BP4, **không dùng** `autograd` hay `torch.optim`.
-
-#### `random_forest.py`
-
-| Lớp                        | Mô tả                                                                 |
-| --------------------------- | ----------------------------------------------------------------------- |
-| `DecisionNode`            | Nút cây quyết định (feature_idx, threshold, left, right, value)    |
-| `DecisionTreeFromScratch` | Cây CART phân loại: Gini impurity, Random Subspace, giới hạn depth |
-| `RandomForestFromScratch` | Rừng ngẫu nhiên: Bootstrap Aggregating + Random Feature Selection    |
-
-- Hoàn toàn bằng NumPy. Dùng phân vị (percentile) để chọn ngưỡng chia nhanh.
-  Bầu chọn đa số (majority voting) khi dự đoán.
-
-### `models/pytorch/cnn.py` — CNN dùng PyTorch
-
-| Lớp / Hàm          | Mô tả                                                            |
-| -------------------- | ------------------------------------------------------------------ |
-| `MNISTCNN`         | CNN: Conv2D(32, 4x4) -> ReLU -> MaxPool(2x2) -> FC(128) -> FC(10)  |
-| `predict_cnn(...)` | Dự đoán batch kèm xác suất softmax; đo thời gian inference |
-
-- Sử dụng `torch.nn` và `autograd` đầy đủ. Kiến trúc theo tài liệu
-  `CNN_MNIST_from_scratch_explained.ipynb`.
-
-### `models/sklearn/ensemble_benchmarks.py` — Benchmark scikit-learn
-
-| Hàm                       | Mô tả                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `benchmark(models, ...)` | Huấn luyện, đo Accuracy/F1/thời gian cho dict các mô hình sklearn; trả về DataFrame xếp hạng |
-
-- Hỗ trợ: `BaggingClassifier`, `RandomForestClassifier`,
-  `ExtraTreesClassifier`, `HistGradientBoostingClassifier`.
-- Đây là **benchmark đối chiếu**, không phải thuật toán tự cài.
-
-### `evaluation/metrics.py` — Hàm đánh giá dùng chung
-
-| Hàm                       | Mô tả                                                      |
-| -------------------------- | ------------------------------------------------------------ |
-| `evaluate_mlp_full(...)` | Đánh giá MLP: Accuracy, Precision, Recall, F1, thời gian |
-| `evaluate_cnn_full(...)` | Đánh giá CNN: Accuracy, Precision, Recall, F1, thời gian |
+- **Nguyên lý toán học:** Mô hình hóa pixel theo phân phối đa thức; suy luận phân lớp theo quy tắc hậu nghiệm cực đại (MAP) trong miền Logarithm để tránh tràn số:
+  $$
+  \hat{y} = \arg\max_{c \in \{0, \dots, 9\}} \left[ \ln P(y = c) + \sum_{j=1}^d x_j \ln \theta_{cj} \right]
+  $$
+- **Làm mượt Laplace:** Khảo sát dải siêu tham số $\alpha \in [10^{-6}, 10^2]$ trên tập Validation; tìm ra điểm cực trị tối ưu tại $\alpha^* = 10^{-4}$ (đạt $82.15\%$ trên Val và $83.56\%$ trên Test).
+- **Đối chiếu Scikit-Learn:** Chênh lệch độ chính xác so với `MultinomialNB` của Scikit-Learn chỉ $0.07\%$ với tỷ lệ đồng thuận dự đoán đạt trên $99.8\%$.
+- **Phân tích lỗi:** Nhầm lẫn tập trung ở các cặp chữ số tương đồng nét mực như $(4 \leftrightarrow 9)$ và $(5 \to 3)$ do hạn chế của giả định độc lập có điều kiện bỏ qua liên kết không gian.
 
 ---
 
-## Thư mục `docs/` — Tài liệu tham khảo
+### 3. `notebook/2_Logistic.ipynb` — One-vs-Rest Logistic Regression
 
-| Tệp                                       | Nội dung                                                                  |
-| ------------------------------------------ | -------------------------------------------------------------------------- |
-| `DoAn_ThucHanh_NhanDang.pdf`             | Đề bài đồ án thực hành môn Nhận dạng mẫu                       |
-| `Lab1.ipynb`                             | Bài Lab 1 — Giới thiệu, làm quen dữ liệu                            |
-| `Lab2.ipynb`                             | Bài Lab 2 — Naive Bayes (cơ sở cho `naive_bayes.py`)                 |
-| `Lab3.ipynb`                             | Bài Lab 3 — Logistic Regression (cơ sở cho `logistic_regression.py`) |
-| `Lab4.ipynb`                             | Bài Lab 4 — Neural Networks                                              |
-| `CNN_MNIST_from_scratch_explained.ipynb` | Giải thích chi tiết kiến trúc CNN from scratch trên MNIST            |
-
-Các bài Lab là **tài liệu đối chiếu** — phần triển khai sản phẩm nằm trong
-`src/` và được trình bày trong `notebook/`.
-
----
-
-## Thư mục `artifacts/` — Artifact mô hình
-
-| Tệp                          | Nội dung                                                             |
-| ----------------------------- | --------------------------------------------------------------------- |
-| `split_indices.npz`         | Chỉ số chia Train/Validation/Test (đảm bảo tái lập)            |
-| `phase1_gaussian_nb.npz`    | Tham số (mean, var, prior) của Gaussian NB đã huấn luyện        |
-| `phase1_multinomial_nb.npz` | Tham số (feature_count, prior) của Multinomial NB đã huấn luyện |
+- **Chiến lược One-vs-Rest (OvR):** Huấn luyện đồng thời 10 bộ phân loại nhị phân tương ứng với 10 lớp chữ số.
+- **Kỹ thuật chèn Bias & Mặt nạ điều chuẩn $L_2$:**
+  - Chèn cột 1 vào ma trận đặc trưng: $\tilde{\mathbf{X}} = [\mathbf{X}, \mathbf{1}] \in \mathbb{R}^{N \times 785}$.
+  - Áp dụng mặt nạ $\mathbf{m} = [1, \dots, 1, 0]^T$ trong số hạng điều chuẩn $L_2$ ($\lambda = 10^{-4}$) để không phạt hệ số tự do $w_0$, giữ siêu phẳng tự do tịnh tiến.
+- **Vector hóa Gradient Descent song song:** Tính toán gradient và cập nhật toàn bộ ma trận trọng số $\mathbf{W} \in \mathbb{R}^{785 \times 10}$ cùng lúc:
+  $$
+  \nabla_{\mathbf{W}} J = \frac{1}{N}\tilde{\mathbf{X}}^T(\mathbf{P} - \mathbf{T}) + \lambda(\mathbf{m} \odot \mathbf{W}), \quad \mathbf{W} \leftarrow \mathbf{W} - \eta \nabla_{\mathbf{W}} J
+  $$
+- **Chống tràn số:** Tính hàm mất mát Binary Cross-Entropy ổn định bằng `np.logaddexp`.
+- **Tối ưu siêu tham số:** Quét tốc độ học $\eta \in [0.1, 0.5, 1.0, 2.0]$; xác định $\eta^* = 0.5$ qua 30 epoch hội tụ tối ưu nhất (Validation Accuracy đạt $85.96\%$, Test Accuracy đạt $86.84\%$).
 
 ---
 
-## Thư mục `figures/` và `results/`
+### 4. `notebook/3_MLP_CNN.ipynb` — Multi-Layer Perceptron & CNN
 
-- **`figures/`**: Chứa các biểu đồ (confusion matrix, learning curve, so sánh
-  mô hình, ...) được sinh bởi các notebook. Thư mục trống khi clone mới — chạy
-  notebook để tạo lại.
-- **`results/`**: Chứa các file CSV metrics từ mỗi phase thí nghiệm. Dự kiến:
-  - `1_Bayes_metrics.csv` — Kết quả Naive Bayes
-  - `2_Logistic_metrics.csv` — Kết quả Logistic Regression
-  - `3_MLP_CNN_metrics.csv` — Kết quả MLP & CNN
-  - `4_Ensemble_metrics.csv` — Kết quả Ensemble
-  - `overall_comparison_metrics.csv` — Bảng so sánh tổng thể tất cả mô hình
-
----
-
-## Thư mục `tests/` — Kiểm thử
-
-### `test_package_smoke.py`
-
-Bộ kiểm thử nhẹ (smoke test) trên dữ liệu giả nhỏ, gồm:
-
-- **`test_naive_bayes_models_fit_and_predict`**: Kiểm tra Gaussian NB và
-  Multinomial NB tự cài có fit/predict đúng trên 4 mẫu.
-- **`test_logistic_regression_fit_and_predict`**: Kiểm tra Logistic Regression
-  tự cài hội tụ đúng trên bài toán 2 lớp đơn giản.
-- **`test_random_forest_fit_and_predict`**: Kiểm tra Random Forest tự cài
-  fit/predict trả về shape và nhãn hợp lệ.
-- **`test_mlp_manual_training_api_and_cnn_output_shape`**: Kiểm tra API MLP
-  (train 2 epoch) và CNN (output shape 10 lớp).
-- **`test_missing_processed_data_has_actionable_error`**: Kiểm tra thông báo lỗi
-  rõ ràng khi chưa chạy preprocessing.
-
-Mục đích: phát hiện lỗi import / API sau khi tách module; **không chạy** toàn
-bộ thí nghiệm MNIST tốn thời gian.
+- **Multi-Layer Perceptron (From scratch):**
+  - Kiến trúc mạng: $784 \to 256 \to 128 \to 10$.
+  - Lan truyền ngược thủ công: Tự tính toán gradient giải tích theo chuỗi đạo hàm giải tích (BP1–BP4) mà không dùng `torch.autograd`.
+  - Hàm kích hoạt ReLU, khởi tạo He Normal, cơ chế Inverted Dropout ($p=0.2$).
+  - Bộ tối ưu SGD Momentum ($\beta=0.5$, $\text{lr}=0.1$), cơ chế Early Stopping theo dõi validation loss.
+  - Phân tích hiện tượng tiêu biến gradient (Vanishing Gradient) và kiểm chứng bảo toàn phương sai kích hoạt qua các tầng ẩn.
+  - Kết quả Test Accuracy: **$98.26\%$** với thời gian suy luận siêu nhanh ($0.002$ ms/mẫu).
+- **Convolutional Neural Network (PyTorch):**
+  - Kiến trúc chuẩn mực: `Conv2D(32 bộ lọc 4x4, stride=1)` $\to$ `ReLU` $\to$ `MaxPool2D(2x2)` $\to$ `Flatten` $\to$ `Dense(128)` $\to$ `Dense(10)`.
+  - Tối ưu hóa bằng Adam ($\text{lr}=10^{-3}$), đạt Test Accuracy cao nhất toàn đồ án: **$98.76\%$**.
+  - Khả năng trích xuất bất biến không gian vượt trội, giải quyết triệt để các trường hợp chữ viết tay nghiêng hoặc biến dạng nặng mà các mô hình tuyến tính thất bại.
 
 ---
 
-## Ranh giới thuật toán — Tự cài vs. Thư viện
+### 5. `notebook/4_Ensemble.ipynb` — AdaBoost Ensemble
 
-| Mô hình                     | Cách triển khai                                             | File                                           |
-| ----------------------------- | ------------------------------------------------------------- | ---------------------------------------------- |
-| Gaussian Naive Bayes          | **Tự cài** (NumPy)                                    | `models/from_scratch/naive_bayes.py`         |
-| Multinomial Naive Bayes       | **Tự cài** (NumPy)                                    | `models/from_scratch/naive_bayes.py`         |
-| Softmax Logistic Regression   | **Tự cài** (NumPy)                                    | `models/from_scratch/logistic_regression.py` |
-| Multi-Layer Perceptron (MLP)  | **Tự cài** backprop (PyTorch tensor, không autograd) | `models/from_scratch/mlp.py`                 |
-| Decision Tree CART            | **Tự cài** (NumPy)                                    | `models/from_scratch/random_forest.py`       |
-| Random Forest                 | **Tự cài** (NumPy)                                    | `models/from_scratch/random_forest.py`       |
-| CNN                           | **Thư viện** PyTorch (`nn.Module`, autograd, optim) | `models/pytorch/cnn.py`                      |
-| Bagging, RF, ExtraTrees, HGBC | **Thư viện** scikit-learn (benchmark đối chiếu)    | `models/sklearn/ensemble_benchmarks.py`      |
+- **Cơ chế Boosting:** Kết hợp tuần tự các bộ phân lớp yếu (Weak Learners) thông qua cập nhật phân phối trọng số mẫu dữ liệu $D_t$ và trọng số biểu quyết $\alpha_t = \frac{1}{2}\ln\left(\frac{1 - \epsilon_t}{\epsilon_t}\right)$.
+- **Khảo sát cấu hình bộ phân loại cơ sở:**
+  - Cây quyết định nông (Decision Stumps, `max_depth=1`): Đạt $78.53\%$ trên tập Test.
+  - Cây quyết định mở rộng (`max_depth=3`, $200$ estimators): Đạt Test Accuracy ấn tượng **$91.75\%$**.
+  - Khảo sát biến thể kết hợp Logistic Regression và Gaussian Naïve Bayes.
 
 ---
 
-## Cài đặt và chạy
+### 6. `notebook/Compairisons.ipynb` — So sánh đối chuẩn toàn diện
 
-### 1. Cài đặt môi trường
+- Đọc và đồng bộ dữ liệu từ 5 file CSV trong thư mục `results/`.
+- Phân tích đường biên hiệu quả Pareto (Accuracy vs. Training Time & Inference Latency).
+- Trực quan hóa ma trận nhầm lẫn tổng hợp trên cùng thang đo và vẽ biểu đồ Radar đa tiêu chí đánh giá toàn diện 5 chiều:
+  1. Độ chính xác tổng thể (Accuracy)
+  2. Khả năng khái quát hóa (Macro-F1)
+  3. Tốc độ huấn luyện (Training Speed)
+  4. Tốc độ suy luận thực tế (Inference Latency)
+  5. Độ phức tạp tính toán và bộ nhớ (Model Footprint)
+
+---
+
+## Ranh giới triển khai thuật toán
+
+| Mô hình                          | Thuật toán cốt lõi                                 |           Cách triển khai           | File cài đặt                                                        |
+| :--------------------------------- | :----------------------------------------------------- | :------------------------------------: | :--------------------------------------------------------------------- |
+| **Multinomial Naïve Bayes** | Đếm tần suất pixel, MAP Log-Domain, Laplace        |     **From Scratch (NumPy)**     | `src/pattern_recognition/models/from_scratch/naive_bayes.py`         |
+| **Logistic Regression**      | Vectorized Batch GD, One-vs-Rest, L2 Mask              |     **From Scratch (NumPy)**     | `src/pattern_recognition/models/from_scratch/logistic_regression.py` |
+| **Multi-Layer Perceptron**   | Lan truyền ngược thủ công (BP1-BP4), SGD Momentum | **From Scratch (Manual Tensor)** | `src/pattern_recognition/models/from_scratch/mlp.py`                 |
+| **Decision Tree & Ensemble** | AdaBoost Boosting, Cập nhật trọng số mẫu $D_t$  |   **From Scratch / Benchmark**   | `src/pattern_recognition/models/from_scratch/ensemble.py`            |
+| **CNN**                      | Conv2D $\to$ MaxPool2D $\to$ Dense, Adam           |      **PyTorch Framework**      | `src/pattern_recognition/models/pytorch/cnn.py`                      |
+| **Benchmark Scikit-Learn**   | MNB, OvR Logistic, Bagging, Random Forest              |     **Scikit-Learn Library**     | `src/pattern_recognition/models/sklearn/ensemble_benchmarks.py`      |
+
+---
+
+## Hướng dẫn cài đặt và chạy thí nghiệm
+
+### 1. Khởi tạo môi trường ảo
 
 ```powershell
-# Tạo và kích hoạt virtual environment
+# Di chuyển vào thư mục dự án
+cd "Pattern-Recognition"
+
+# Tạo môi trường ảo Python
 python -m venv .venv
+
+# Kích hoạt môi trường (Windows PowerShell)
 .venv\Scripts\Activate.ps1
 
-# Cài thư viện phụ thuộc
+# Cài đặt toàn bộ thư viện phụ thuộc
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 
-# (Tùy chọn) Cài package dạng editable để import từ bất kỳ đâu
+# (Tùy chọn) Cài đặt package dạng editable để import module thuận tiện
 python -m pip install -e . --no-deps
 ```
 
-### 2. Thư viện phụ thuộc
+### 2. Thứ tự thực thi các Notebook
 
-| Thư viện       | Vai trò                                                    |
-| ---------------- | ----------------------------------------------------------- |
-| `numpy`        | Tính toán ma trận, triển khai thuật toán from scratch |
-| `pandas`       | Xử lý bảng dữ liệu, xuất CSV                          |
-| `matplotlib`   | Vẽ biểu đồ, trực quan hóa                             |
-| `seaborn`      | Biểu đồ thống kê nâng cao                             |
-| `scipy`        | Hàm toán học bổ trợ                                    |
-| `scikit-learn` | Mô hình benchmark, metrics đánh giá                    |
-| `torch`        | Tensor cho MLP, kiến trúc/huấn luyện CNN                |
-| `torchvision`  | Tải bộ dữ liệu MNIST gốc                               |
-| `joblib`       | Lưu/tải mô hình                                         |
-| `jupyter`      | Chạy notebook                                              |
+Các notebook cần được chạy theo đúng thứ tự logic để đảm bảo sinh đầy đủ dữ liệu và số liệu thực nghiệm:
 
-### 3. Chạy notebook theo thứ tự
-
-```
-1. notebook/preprocessing.ipynb    <- chạy đầu tiên (tạo dữ liệu cho các bước sau)
-2. notebook/1_Bayes.ipynb          <- Naive Bayes (Phase 1)
-3. notebook/2_Logistic.ipynb       <- Logistic Regression (Phase 1)
-4. notebook/3_MLP_CNN.ipynb        <- MLP & CNN (Phase 2)
-5. notebook/4_Ensemble_Comparisons.ipynb  <- Ensemble & tổng hợp (Phase 3)
+```text
+1. notebook/0_Preprocessing_EDA.ipynb   # Bắt buộc chạy đầu tiên để sinh mnist_processed.npz
+2. notebook/1_Bayes.ipynb               # Huấn luyện Naïve Bayes -> xuất 1_Bayes_metrics.csv
+3. notebook/2_Logistic.ipynb            # Huấn luyện Logistic Regression -> xuất 2_Logistic_metrics.csv
+4. notebook/3_MLP_CNN.ipynb             # Huấn luyện MLP & CNN -> xuất 3_MLP_CNN_metrics.csv
+5. notebook/4_Ensemble.ipynb            # Huấn luyện AdaBoost -> xuất 4_Ensemble_metrics.csv
+6. notebook/Compairisons.ipynb          # Đọc toàn bộ CSV và vẽ biểu đồ so sánh tổng kết
 ```
 
-**Lưu ý quan trọng**: Các notebook cần chạy **tuần tự** vì:
+### 3. Chạy kiểm thử tự động (Unit Tests)
 
-- `preprocessing.ipynb` tạo file `data/processed/mnist_processed.npz` mà mọi
-  notebook khác đều phụ thuộc.
-- Notebook 4 đọc CSV metrics từ notebook 1–3 để tạo bảng so sánh tổng thể.
-
-**Khi clone mới**: Thư mục `data/MNIST/` (raw data) bị `.gitignore` bỏ qua.
-Chạy `preprocessing.ipynb` để tải và xử lý lại dữ liệu.
-
-### 4. Import trong notebook
-
-Các notebook tự thêm `src/` vào `sys.path` nên chạy được mà không cần cài
-package editable. Lệnh `pip install -e . --no-deps` là tùy chọn tiện lợi khi
-muốn import package từ script bên ngoài notebook.
-
----
-
-## Chạy kiểm thử
+Kiểm tra tính toàn vẹn của mã nguồn và các hàm toán học:
 
 ```powershell
 python -m unittest discover -s tests -v
@@ -392,10 +234,10 @@ python -m unittest discover -s tests -v
 
 ---
 
-## Tệp cấu hình gốc
+## Danh mục thư viện chính (`requirements.txt`)
 
-| Tệp                 | Mô tả                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------- |
-| `pyproject.toml`   | Metadata dự án (tên, phiên bản, Python >= 3.10, setuptools)                              |
-| `requirements.txt` | Danh sách 10 thư viện phụ thuộc                                                          |
-| `.gitignore`       | Loại trừ: `.venv/`, `__pycache__/`, `*.pyc`, `.ipynb_checkpoints/`, `data/MNIST/` |
+* **Tính toán khoa học & Xử lý ma trận:** `numpy`, `scipy`, `pandas`
+* **Trực quan hóa đồ thị:** `matplotlib`, `seaborn`
+* **Mô hình học sâu & Xử lý tensor:** `torch`, `torchvision`
+* **Mô hình đối chuẩn & Đánh giá metrics:** `scikit-learn`
+* **Môi trường tính toán tương tác:** `jupyter`, `ipykernel`
