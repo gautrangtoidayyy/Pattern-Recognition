@@ -1,0 +1,100 @@
+{
+  "description": "Temperature scaling fit on 1500 fixed MNIST validation images; another 1500 validation images held out for this comparison. Validation had previously informed model selection, so it is not a fresh external calibration dataset. No synthetic blends or test examples were used for fitting.",
+  "seed": 712,
+  "calibration_count": 1500,
+  "holdout_count": 1500,
+  "blend_count": 300,
+  "models": {
+    "gnb": {
+      "applied_temperature": 30.858617968249956,
+      "method": "temperature scaling; Gaussian NB logits only",
+      "fit_count": 5000,
+      "holdout_count": 5000,
+      "seed": 23891,
+      "fit_raw": {
+        "nll": 10.81503440755225,
+        "ece": 0.2026656812564155,
+        "accuracy": 0.7904,
+        "display_100_fraction": 0.904
+      },
+      "fit_calibrated": {
+        "nll": 0.662469639576316,
+        "ece": 0.03985486889330883,
+        "accuracy": 0.7904,
+        "display_100_fraction": 0.0108
+      },
+      "holdout_raw": {
+        "nll": 10.363177018148543,
+        "ece": 0.19632966253706854,
+        "accuracy": 0.796,
+        "display_100_fraction": 0.905
+      },
+      "holdout_calibrated": {
+        "nll": 0.648101150614992,
+        "ece": 0.04041479406495328,
+        "accuracy": 0.796,
+        "display_100_fraction": 0.0138
+      },
+      "limitation": "The MNIST validation set was used in earlier model selection. Holdout split is disjoint for temperature fitting but is not an independent external test set."
+    },
+    "mnb": {
+      "fitted_temperature": 7.985137507665122,
+      "applied_temperature": 7.985137507665122,
+      "nll_raw": 2.455530097602974,
+      "nll_fitted": 0.5670511106827514,
+      "ece_raw": 0.14550155584907878,
+      "ece_fitted": 0.03453653052283848,
+      "holdout_accuracy": 0.83,
+      "hybrid_fraction_over99_raw": 0.6266666666666667,
+      "hybrid_fraction_over99_fitted": 0.01
+    },
+    "lr": {
+      "applied_temperature": 1,
+      "note": "Updated model weights: previous calibration is invalid; raw probabilities shown."
+    },
+    "mlp": {
+      "fitted_temperature": 1.9962934372198846,
+      "applied_temperature": 1,
+      "nll_raw": 0.09042175786150758,
+      "nll_fitted": 0.07051668286667119,
+      "ece_raw": 0.012017843408945041,
+      "ece_fitted": 0.008896727649339761,
+      "holdout_accuracy": 0.982,
+      "hybrid_fraction_over99_raw": 0.31333333333333335,
+      "hybrid_fraction_over99_fitted": 0.043333333333333335,
+      "note": "Old temperature applies only to the previous model. Reference model used the full MNIST training set including the former validation split; no independent calibration set was available."
+    },
+    "cnn": {
+      "applied_temperature": 1,
+      "note": "New model from ZIP, old calibration not applicable."
+    },
+    "ada": {
+      "fitted_temperature": 0.002478762345865672,
+      "applied_temperature": 1.0,
+      "nll_raw": 2.2854999160845444,
+      "nll_fitted": 0.2643125958280342,
+      "ece_raw": 0.8102442434582114,
+      "ece_fitted": 0.027105996910039714,
+      "holdout_accuracy": 0.912,
+      "hybrid_fraction_over99_raw": 0.0,
+      "hybrid_fraction_over99_fitted": 0.10333333333333333
+    },
+    "bnb": {
+      "applied_temperature": 11.308197469318118,
+      "source": "MNIST test split, previously used for other comparisons; not an untouched external test",
+      "seed": 832,
+      "fit_count": 5000,
+      "holdout_count": 5000,
+      "holdout_raw": {
+        "nll": 3.180699456569425,
+        "accuracy": 0.847,
+        "rounded_100": 0.8162
+      },
+      "holdout_calibrated": {
+        "nll": 0.5122228991744207,
+        "accuracy": 0.847,
+        "rounded_100": 0.0196
+      }
+    }
+  }
+}
