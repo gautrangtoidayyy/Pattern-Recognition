@@ -1,0 +1,13 @@
+model,split,accuracy,precision_macro,recall_macro,f1_macro,train_seconds,predict_seconds,n_samples,seed,params
+AdaBoost (depth=3),train,0.9224,0.9234,0.9218,0.922,330.1451,2.4323,50000,42,"n_estimators=200,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=3)"
+AdaBoost (depth=3),validation,0.9093,0.9114,0.9085,0.909,330.1451,0.4432,10000,42,"n_estimators=200,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=3)"
+AdaBoost (depth=3),test,0.9162,0.9176,0.9154,0.9157,330.1451,0.4634,10000,42,"n_estimators=200,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=3)"
+AdaBoost (LogReg),train,0.8492,0.8496,0.8468,0.8476,18.7294,0.48,50000,42,"n_estimators=50,learning_rate=0.5,estimator=LogisticRegression(max_iter=500)"
+AdaBoost (LogReg),validation,0.8475,0.8484,0.8452,0.846,18.7294,0.0934,10000,42,"n_estimators=50,learning_rate=0.5,estimator=LogisticRegression(max_iter=500)"
+AdaBoost (LogReg),test,0.8539,0.8541,0.8515,0.8521,18.7294,0.1089,10000,42,"n_estimators=50,learning_rate=0.5,estimator=LogisticRegression(max_iter=500)"
+AdaBoost (stump),train,0.7713,0.7777,0.7689,0.7704,115.5444,2.0997,50000,42,"n_estimators=100,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=1)"
+AdaBoost (stump),validation,0.7675,0.7753,0.7652,0.7671,115.5444,0.4135,10000,42,"n_estimators=100,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=1)"
+AdaBoost (stump),test,0.7726,0.7804,0.7701,0.7721,115.5444,0.3891,10000,42,"n_estimators=100,learning_rate=0.5,estimator=DecisionTreeClassifier(max_depth=1)"
+AdaBoost (GaussianNB),train,0.5532,0.7102,0.5451,0.5028,19.4947,14.0918,50000,42,"n_estimators=50,learning_rate=0.5,estimator=GaussianNB()"
+AdaBoost (GaussianNB),validation,0.5464,0.696,0.5381,0.4961,19.4947,2.355,10000,42,"n_estimators=50,learning_rate=0.5,estimator=GaussianNB()"
+AdaBoost (GaussianNB),test,0.5438,0.7041,0.5363,0.4921,19.4947,2.2821,10000,42,"n_estimators=50,learning_rate=0.5,estimator=GaussianNB()"
